@@ -1,0 +1,71 @@
+defaults:
+  - dataset_base
+  - _self_
+
+do_overwrite: True
+
+cohort_name: "CMS_sample"
+subject_id_col: "bene_id"
+raw_data_dir: "./medpar_data/mbsf_medpar_denom/"
+save_dir: "./processed_data/${cohort_name}"
+
+min_los: 3
+min_admission: 1
+
+# Input data sources
+inputs:
+  patients:
+    input_df: "${raw_data_dir}/denom_2000.parquet"
+    subject_id_col: "bene_id"
+  death:
+    input_df: "${raw_data_dir}/denom_2000.parquet"
+    ts_col: "dod"
+  admissions:
+    input_df: "${raw_data_dir}/inpatient_2000.parquet"
+    start_ts_col: "admission_date"
+    end_ts_col: "discharge_date"
+    type: 'range'
+    start_columns:
+      - "src_admsn_cd"
+      - "admsn_type_cd"
+    end_columns: 
+      #- "dschrgcd"
+      - "dschrg_dstntn_cd"
+      - "los_day_cnt"
+      - "diagnoses"
+      - "primary_diag"
+    event_type: "HOSPITALIZATION"
+
+measurements:
+  static:
+    single_label_classification:
+      patients: ["race", "sex", "state", "zcta", "county", "age_dob"]
+  functional_time_dependent:
+    age:
+      functor: AgeFunctor
+      kwargs:
+        dob_col: "dob"
+    time_of_day:
+      functor: TimeOfDayFunctor
+  dynamic:
+    multi_label_classification:
+      admissions:
+        #- "dschrg_cd"
+        - "diagnoses"
+        - "primary_diag"
+        - "src_admsn_cd"
+        - "admsn_type_cd"
+        - "dschrg_dstntn_cd"
+    univariate_regression:
+      admissions:
+        - "los_day_cnt"
+# Outlier and normalization settings
+outlier_detector_config:
+  stddev_cutoff: 4.0
+min_valid_vocab_element_observations: 25
+min_valid_column_observations: 50
+min_true_float_frequency: 0.1
+min_unique_numerical_observations: 25
+min_events_per_subject: 20
+agg_by_time_scale: "2h"
+DL_chunk_size: 4000
