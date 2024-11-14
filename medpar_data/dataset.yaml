@@ -7,10 +7,7 @@ do_overwrite: True
 cohort_name: "CMS_sample"
 subject_id_col: "bene_id"
 raw_data_dir: "./medpar_data/mbsf_medpar_denom/"
-save_dir: "./processed_data/${cohort_name}"
-
-min_los: 3
-min_admission: 1
+save_dir: "./medpar_data/processed_data/${cohort_name}"
 
 # Input data sources
 inputs:
@@ -20,6 +17,7 @@ inputs:
   death:
     input_df: "${raw_data_dir}/denom_2000.parquet"
     ts_col: "dod"
+    must_have: "dod"
   admissions:
     input_df: "${raw_data_dir}/inpatient_2000.parquet"
     start_ts_col: "admission_date"
@@ -66,6 +64,6 @@ min_valid_vocab_element_observations: 25
 min_valid_column_observations: 50
 min_true_float_frequency: 0.1
 min_unique_numerical_observations: 25
-min_events_per_subject: 20
-agg_by_time_scale: "2h"
-DL_chunk_size: 4000
+min_events_per_subject: 1
+agg_by_time_scale: null
+DL_chunk_size: 20000
